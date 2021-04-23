@@ -1,4 +1,5 @@
 import React from 'react';
+import {connect} from 'react-redux';
 import {
   View,
   Text,
@@ -16,10 +17,10 @@ import Feather from 'react-native-vector-icons/Feather';
 
 import {useTheme} from 'react-native-paper';
 
-import {API_URL} from '../../../config';
 import {GetLogin} from '../../store/global/Post';
+import {Login} from '../../redux/global/GlobalActions';
 
-const SignInScreen = ({navigation}) => {
+const SignInScreen = ({navigation, Login}) => {
   const [data, setData] = React.useState({
     username: '',
     password: '',
@@ -94,11 +95,22 @@ const SignInScreen = ({navigation}) => {
 
     console.log(JSON.stringify(payload));
 
+    // LOGIN
     GetLogin(payload)
       .then(result => {
-        console.log('resultnya', result);
+        if (result.code === '01') {
+          Login(result.data);
+        } else {
+          Alert.alert(result.status, result.message, [{text: 'Okay'}]);
+          return;
+        }
       })
-      .catch(error => console.log(error));
+      .catch(error => {
+        Alert.alert(error.response.data.status, error.response.data.message, [
+          {text: 'Okay'},
+        ]);
+        return;
+      });
   };
 
   return (
@@ -246,7 +258,13 @@ const SignInScreen = ({navigation}) => {
   );
 };
 
-export default SignInScreen;
+const mapDispatchToProps = dispatch => {
+  return {
+    Login: params => dispatch(Login(params)),
+  };
+};
+
+export default connect(null, mapDispatchToProps)(SignInScreen);
 
 const styles = StyleSheet.create({
   container: {
